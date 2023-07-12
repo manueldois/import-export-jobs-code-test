@@ -1,0 +1,26 @@
+version: '3.4'
+services:
+  server:
+    container_name: reedsy-server
+    restart: always
+    environment:
+      PORT: 3000
+      REDIS_PORT: 6379
+      REDIS_HOST: reedsy-redis
+    build:
+      context: ./server
+      dockerfile: dockerfile        
+    ports:
+      - 3000:3000
+    volumes:
+      - db:/home/node/app/data
+
+  redis:
+    container_name: reedsy-redis
+    restart: always
+    image: "redis:alpine"
+    ports:
+      - 6379:6379
+  
+volumes:
+  db:
