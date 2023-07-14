@@ -11,7 +11,8 @@ export class ExportJob extends Model<InferAttributes<ExportJob>, InferCreationAt
 ExportJob.init({
     id: {
         primaryKey: true,
-        type: DataTypes.INTEGER.UNSIGNED,
+        type: DataTypes.INTEGER,
+        autoIncrement: true
     },
     bookId: {
         type: DataTypes.STRING,

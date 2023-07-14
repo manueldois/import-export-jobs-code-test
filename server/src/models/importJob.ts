@@ -13,6 +13,7 @@ ImportJob.init({
     id: {
         primaryKey: true,
         type: DataTypes.INTEGER.UNSIGNED,
+        autoIncrement: true
     },
     bookId: {
         type: DataTypes.STRING,
