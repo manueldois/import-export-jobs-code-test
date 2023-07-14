@@ -1,12 +1,15 @@
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { ExportJob } from '../../models/exportJob';
+import { groupBy } from '../../utils';
 
 const handler = async (req: Request, res: Response) => {
     const exportJobs = await ExportJob.findAll({
-        group: 'status'
+        where: {},
     })
 
-    res.json(exportJobs)
+    const exportJobsDataGrouped = groupBy(exportJobs.map(doc => doc.toJSON()), job => job.state)
+
+    res.json(exportJobsDataGrouped)
 }
 
 export default [handler]

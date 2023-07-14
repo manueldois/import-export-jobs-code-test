@@ -3,6 +3,8 @@ import express from 'express'
 import { sequelize } from './services/sequelize';
 import { ExportJob } from './models/exportJob';
 import { ImportJob } from './models/importJob';
+import { post as postExportJob, get as getExportJob } from './controllers/export-job';
+import { post as postImportJob, get as getImportJob } from './controllers/import-job';
 
 export async function createApp() {
     try {
@@ -19,6 +21,15 @@ export async function createApp() {
     const app: express.Application = express();
 
     app.use(express.json())
+
+    app.post('/export-job', ...postExportJob)
+
+    app.get('/export-job', ...getExportJob)
+
+    app.post('/import-job', ...postImportJob)
+
+    app.get('/import-job', ...getImportJob)
+
 
 
 

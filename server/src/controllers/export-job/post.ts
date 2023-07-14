@@ -16,7 +16,7 @@ const handler = async (req: TypedRequestBody<typeof bodySchema>, res: Response) 
         type
     })
 
-    res.json(newExportJob.dataValues)
+    res.json(newExportJob.toJSON())
 }
 
 export default [validateRequestBody(bodySchema), handler]
