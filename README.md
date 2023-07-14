@@ -2,23 +2,24 @@
 
 ## Functionalities
 
-- Accepts a chunk of unstructured text Sample text (transcript)
-- Sends it to ChatGPT asking to return the main topics
-- Will at a maximum rate send 5 requests per second
-- Writes the response to permanent storage
-- Reuses responses to the OpenAI API when duplicates are requested
-- Allows querying the status of each request e.g. queued, complete, error
+- Create Import and Export jobs
+- Get them grouped by state
+- State can be `'pending' | 'finished' | 'error'`
+- After <processing_time> set state to `finished`
+
+| Job type     | Processing time (s) |
+| ------------ | ------------------- |
+| ePub export  | 10                  |
+| PDF export   | 25                  |
+| import (any) | 60                  |
 
 ## Dev notes
 
 For storage I'm using SQLite while keeping the data in a persistent volume `db`.
-This is simple and sufficient as this service will always be running single.
-
-The transcript is not stored to DB. Only it's hash to compare duplicates for memoization.
 
 For the queue, I'm using BullMQ as it provides all necessary functionalities, and it's unnecessary to roll out my own implementation.
 
-Vitest is used to provide extensive integration test coverage
+Vitest is used to provide extensive integration test coverage.
 
 ## Tech stack
 
@@ -31,20 +32,16 @@ Vitest is used to provide extensive integration test coverage
 
 ## Usage
 
-The project requires an OpenAI API key
-
-`mkdir secrets && echo "<OPENAI_API_KEY>" > ./secrets/openai_api_key.txt `
-
 `docker-compose -f docker-compose.yml up`
 
 ## Endpoints
 
 Default port `3000`
 
-- `POST /transcripts: ` `{"transcript": "<transcript text>"}` Adds a transcript job
-- `GET /transcripts` Gets all transcript jobs
-- `GET /transcripts/:id` Gets transcript job per id
-- `GET /transcripts/:id/status` Gets transcript job per id, only status
+- `POST /export-job: ` `{"bookId": string, "type": "epub" | "pdf"}` Adds an export job
+- `GET /export-job` Gets all export jobs grouped by state
+- `POST /import-job: ` `{"bookId": string, "type": "word" | "pdf" | "wattpad" | "evernote"}` Adds an import job
+- `GET /import-job` Gets all import jobs grouped by state
 
 ## Dev workflow
 
@@ -55,8 +52,6 @@ Default port `3000`
 `cd server && npm i && npm run dev:debug`
 
 ## Tests
-
-Testing does NOT require an OpenAI API key
 
 `cd server && npm i && npm run dev:test`
 
