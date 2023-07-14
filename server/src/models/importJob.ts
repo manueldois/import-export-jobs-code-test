@@ -5,8 +5,8 @@ export class ImportJob extends Model<InferAttributes<ImportJob>, InferCreationAt
     id: CreationOptional<number>;
     bookId: string;
     url: string;
-    type: "word" | "pdf"| "wattpad"| "evernote";
-    state: 'pending' | 'finished';
+    type: "word" | "pdf" | "wattpad" | "evernote";
+    state: 'pending' | 'finished' | 'error';
 }
 
 ImportJob.init({
@@ -30,7 +30,7 @@ ImportJob.init({
     },
     state: {
         type: DataTypes.ENUM,
-        values: ['pending', 'finished'],
+        values: ['pending', 'finished', 'error'],
         allowNull: false,
         defaultValue: 'pending'
     }

@@ -5,7 +5,7 @@ export class ExportJob extends Model<InferAttributes<ExportJob>, InferCreationAt
     id: CreationOptional<number>;
     bookId: string;
     type: 'epub' | 'pdf';
-    state: 'pending' | 'finished';
+    state: 'pending' | 'finished' | 'error';
 }
 
 ExportJob.init({
@@ -25,7 +25,7 @@ ExportJob.init({
     },
     state: {
         type: DataTypes.ENUM,
-        values: ['pending', 'finished'],
+        values: ['pending', 'finished', 'error'],
         allowNull: false,
         defaultValue: 'pending'
     }

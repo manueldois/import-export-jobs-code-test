@@ -1,17 +1,23 @@
 import 'dotenv/config'
-import { beforeEach, describe, vi, it, expect } from 'vitest';
+import { beforeEach, describe, vi, it, expect, afterEach, Mock } from 'vitest';
 import { createApp } from '../src/app'
-import { promisify } from 'util'
 import { ExportJob } from '../src/models/exportJob'
 import request from 'supertest'
 import { ImportJob } from '../src/models/importJob';
-
-
-const setTimeoutAsync = promisify(setTimeout)
+import { setTimeoutAsync } from '../src/utils';
 
 vi.mock('../src/services/sequelize', async () => {
   const { Sequelize } = await import('sequelize');
   return { sequelize: new Sequelize('sqlite::memory:', { logging: false }) }
+})
+
+vi.mock('../src/utils', async () => {
+  const util = await import('../src/utils')
+
+  return {
+    ...util,
+    setTimeoutAsync: vi.fn()
+  }
 })
 
 const app = await createApp()
@@ -20,17 +26,58 @@ describe('API tests', () => {
   beforeEach(async () => {
     await ExportJob.destroy({ where: {} })
     await ImportJob.destroy({ where: {} })
+  })
+
+  afterEach(async () => {
     vi.resetAllMocks()
   })
 
-  it('Creates export jobs', async () => {
-    const resPost = await request(app)
+  it('Creates export jobs, then waits, then gets them with status finished', async () => {
+    (setTimeoutAsync as Mock).mockImplementation(() => new Promise<void>((resolve) => {
+      setTimeout(resolve, 500)
+    }))
+
+    const resPostEpub = await request(app)
       .post('/export-job')
       .send({ bookId: "1", type: "epub" })
 
-    const exportJob = await ExportJob.findByPk(resPost.body.id)
+    const exportJobEPub = await ExportJob.findByPk(resPostEpub.body.id)
 
-    expect(exportJob?.dataValues).toMatchObject({ bookId: "1", type: "epub" })
+    expect(exportJobEPub?.dataValues)
+      .toMatchObject({ bookId: "1", type: "epub", state: 'pending' })
+
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 500)
+    })
+
+    await exportJobEPub?.reload()
+
+    expect(exportJobEPub?.dataValues)
+      .toMatchObject({ state: 'finished' })
+  })
+
+  it('Creates import jobs, then waits, then gets them with status finished', async () => {
+    (setTimeoutAsync as Mock).mockImplementation(() => new Promise<void>((resolve) => {
+      setTimeout(resolve, 500)
+    }))
+
+    const resPostEpub = await request(app)
+      .post('/import-job')
+      .send({ bookId: "1", type: "word", url: "http://test.com" })
+
+    const importJobEPub = await ImportJob.findByPk(resPostEpub.body.id)
+
+    expect(importJobEPub?.dataValues)
+      .toMatchObject({ bookId: "1", type: "word", url: "http://test.com", state: 'pending' })
+
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 500)
+    })
+
+    await importJobEPub?.reload()
+
+    expect(importJobEPub?.dataValues)
+      .toMatchObject({ state: 'finished' })
   })
 
   it('Gets export jobs grouped by state', async () => {
@@ -68,17 +115,7 @@ describe('API tests', () => {
     )
   })
 
-  it('Creates import jobs', async () => {
-    const resPost = await request(app)
-      .post('/import-job')
-      .send({ bookId: "1", type: "word", url: "http://test.com" })
-
-    const importJob = await ImportJob.findByPk(resPost.body.id)
-
-    expect(importJob?.dataValues).toMatchObject({ bookId: "1", type: "word", url: "http://test.com" })
-  })
-
-  it('Gets export jobs grouped by state', async () => {
+  it('Gets import jobs grouped by state', async () => {
     const importJob1 = await ImportJob.create({
       bookId: "1",
       type: "word",
@@ -115,6 +152,4 @@ describe('API tests', () => {
       }
     )
   })
-
-
 })
